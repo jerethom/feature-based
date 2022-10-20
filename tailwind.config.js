@@ -4,8 +4,9 @@ module.exports = {
   theme: {
     extend: {
       colors: (utils) => ({
-        app: utils.colors.gray["700"],
-        user: utils.colors.gray["900"],
+        app: utils.colors.slate["700"],
+        "sub-app": utils.colors.slate["500"],
+        user: utils.colors.slate["900"],
       }),
     },
   },

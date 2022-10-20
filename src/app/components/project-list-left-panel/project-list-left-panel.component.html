@@ -1,0 +1,17 @@
+<div class="h-screen bg-white border-r shadow py-2 px-4 sticky top-0 w-60">
+  <p class="font-bold text-lg mb-4">Liste des projets</p>
+
+  <ul class="grid grid-cols-1 gap-1">
+    <li
+      *rxFor="let project of projectService.list$"
+      class="p-1 bg-slate-200 rounded grid grid-cols-[1fr,auto] items-center group cursor-pointer hover:ring hover:ring-slate-500 transition"
+    >
+      <p class="truncate">{{ project.name }}</p>
+      <div
+        class="transition opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0"
+      >
+        <em class="fa-solid fa-arrow-right"></em>
+      </div>
+    </li>
+  </ul>
+</div>

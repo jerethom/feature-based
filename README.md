@@ -1,27 +1,101 @@
 # FeatureBased
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.2.1.
+Application d'aide à la conception de projet informatique basé sur les features du projet.
 
-## Development server
+## Fonctionnalités
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Peut indiquer si une feature dépend d'une autre feature A->B.
+- Peut ajouter des questions sur les features.
+- Une question peut avoir une discussion.
+- Indiquer un élément de discussion comme réponse à la question ou écrire la réponse.
+- Visualiser les features sous forme de graph à nœud.
+- Recherche d'une feature par text (Regexp).
 
-## Code scaffolding
+### Format texte
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```markdown
+# Feature
 
-## Build
+> description
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Présentation
 
-## Running unit tests
+## Implique
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Questions
+```
 
-## Running end-to-end tests
+### Format typescript
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+```typescript
+interface Data {
+  projects: { [id: Project["id"]]: Project };
+  features: { [id: Feature["id"]]: Feature };
+  questions: { [id: Question["id"]]: Question };
+}
 
-## Further help
+interface Project {
+  id: string;
+  name: string;
+  features: Feature["id"][];
+}
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+interface Feature {
+  id: string;
+  name: string;
+  description: string | null;
+  presentation: string[];
+  implies: Feature["id"][];
+  questions: Question["id"][];
+}
+
+interface Question {
+  id: string;
+  content: string;
+  discussion: { [timestamp: string]: string }[];
+  answer: string | null;
+}
+```
+
+### Format JSON
+
+```json
+{
+  "projects": {
+    "d66ba447-33e8-4440-a11f-6f7d3ed64519": {
+      "id": "d66ba447-33e8-4440-a11f-6f7d3ed64519",
+      "name": "Un super projet",
+      "features": []
+    }
+  },
+  "features": {
+    "472f73cc-e67f-4cc5-b3dc-dbc55a0de7e7": {
+      "id": "472f73cc-e67f-4cc5-b3dc-dbc55a0de7e7",
+      "name": "Ma super feature 1",
+      "description": null,
+      "presentation": [],
+      "implies": ["49a9152a-c118-440d-8ff7-94e36d94fef4"],
+      "questions": ["73401d1c-df69-4153-8e3d-b1dd350ecb95"]
+    },
+    "49a9152a-c118-440d-8ff7-94e36d94fef4": {
+      "id": "49a9152a-c118-440d-8ff7-94e36d94fef4",
+      "name": "Ma super feature 2",
+      "description": null,
+      "presentation": [],
+      "implies": [],
+      "questions": ["73401d1c-df69-4153-8e3d-b1dd350ecb95"]
+    }
+  },
+  "questions": {
+    "73401d1c-df69-4153-8e3d-b1dd350ecb95": {
+      "id": "73401d1c-df69-4153-8e3d-b1dd350ecb95",
+      "content": "L'utilisateur doit-il être inscrit ?",
+      "discussion": {
+        "1666274887538": "Tu es sur de ça ?",
+        "1666274913362": "Oui certain"
+      },
+      "answer": "Oui"
+    }
+  }
+}
+```
