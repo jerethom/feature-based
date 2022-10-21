@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -16,6 +16,7 @@ import { ProjectService } from '../../services/project.service';
   templateUrl: 'new-project-page.component.html',
   styleUrls: ['new-project-page.component.scss'],
   imports: [InputDirective, ButtonDirective, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NewProjectPageComponent {
   formNewProject = new FormGroup({

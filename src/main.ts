@@ -9,12 +9,13 @@ import { environment } from './environments/environment';
 
 if (environment.production) {
   enableProdMode();
-  console.log('test');
 }
 
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(BrowserAnimationsModule),
-    importProvidersFrom(RouterModule.forRoot(appRouting)),
+    importProvidersFrom(
+      RouterModule.forRoot(appRouting, { onSameUrlNavigation: 'reload' })
+    ),
   ],
 }).catch(console.error);

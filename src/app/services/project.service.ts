@@ -10,8 +10,13 @@ import { DatabaseService } from './database.service';
 @Injectable({
   providedIn: 'root',
 })
-export class ProjectService extends RxState<{ projects: Project[] }> {
+export class ProjectService extends RxState<{
+  projects: Project[];
+  project: Project | null;
+}> {
   readonly list$ = this.select('projects');
+
+  readonly project$ = this.select('project');
 
   constructor(private readonly databaseService: DatabaseService) {
     super();
@@ -24,6 +29,17 @@ export class ProjectService extends RxState<{ projects: Project[] }> {
     );
   }
 
+  async getProject(id: Project['id']) {
+    this.connect(
+      'project',
+      wrapDixieObservable(
+        liveQuery(() =>
+          this.databaseService.projects.get(id).then((res) => res ?? null)
+        )
+      )
+    );
+  }
+
   async create(args: ConstructorParameters<typeof Project>): Promise<Project> {
     const project = new Project(...args);
     await this.databaseService.projects.add(project);
@@ -32,5 +48,9 @@ export class ProjectService extends RxState<{ projects: Project[] }> {
 
   async delete(id: Project['id']): Promise<void> {
     await this.databaseService.projects.delete(id);
+  }
+
+  async update(id: Project['id'], args: Partial<Project>) {
+    await this.databaseService.projects.update(id, args);
   }
 }

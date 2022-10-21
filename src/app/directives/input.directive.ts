@@ -15,6 +15,7 @@ export class InputDirective {
     'bg-white',
     'transition',
     'outline-none',
+    'placeholder:text-slate-500',
 
     // 'hover:border-transparent',
     'hover:ring',

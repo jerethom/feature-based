@@ -3,15 +3,37 @@
 
   <ul class="grid grid-cols-1 gap-1">
     <li
-      *rxFor="let project of projectService.list$"
-      class="p-1 bg-slate-200 rounded grid grid-cols-[1fr,auto] items-center group cursor-pointer hover:ring hover:ring-slate-500 transition"
+      routerLinkActive="!bg-slate-700 text-white"
+      class="p-1 bg-slate-200 rounded group cursor-pointer hover:ring hover:ring-slate-500 transition"
     >
-      <p class="truncate">{{ project.name }}</p>
-      <div
-        class="transition opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0"
+      <a
+        class="grid grid-cols-[1fr,auto] items-center"
+        routerLink="/new-project"
       >
-        <em class="fa-solid fa-arrow-right"></em>
-      </div>
+        <p class="truncate">Nouveau projet</p>
+        <div
+          class="transition opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0"
+        >
+          <em class="fa-solid fa-arrow-right"></em>
+        </div>
+      </a>
+    </li>
+    <li
+      *rxFor="let project of projectService.list$"
+      routerLinkActive="!bg-slate-700 text-white"
+      class="bg-slate-200 rounded group cursor-pointer hover:ring hover:ring-slate-500 transition"
+    >
+      <a
+        class="p-1 grid grid-cols-[1fr,auto] items-center"
+        [routerLink]="['/project', project.id]"
+      >
+        <p class="truncate">{{ project.name }}</p>
+        <div
+          class="transition opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0"
+        >
+          <em class="fa-solid fa-arrow-right"></em>
+        </div>
+      </a>
     </li>
   </ul>
 </div>

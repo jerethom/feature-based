@@ -1,0 +1,53 @@
+<div class="grid grid-cols-1 gap-4" *rxLet="feature$; let feature">
+  <div
+    contenteditable="true"
+    (blur)="updateFeatureName($event, feature)"
+    class="text-2xl"
+    [ngClass]="featureClass"
+    [innerHTML]="feature.name"
+  ></div>
+  <div
+    contenteditable="true"
+    class="mb-4"
+    (blur)="updateFeatureDescription($event, feature)"
+    [ngClass]="featureClass"
+    [innerHTML]="feature.description"
+  ></div>
+  <p class="text-xl font-bold">Implique</p>
+  <div class="grid grid-cols-1 gap-2">
+    <div class="grid grid-cols-[auto,1fr] gap-2 items-center">
+      <em class="fa-solid fa-magnifying-glass"></em>
+      <div class="relative">
+        <input
+          type="text"
+          class="w-full"
+          fbInput
+          placeholder="Créer ou rechercher une feature"
+          role="combobox"
+          aria-autocomplete="both"
+          aria-expanded="true"
+          aria-controls="cb1-listbox"
+        />
+        <ul
+          id="cb1-listbox"
+          role="listbox"
+          aria-label="States"
+          class="absolute left-0 right-0 top-[calc(100%+0.2rem)] bg-white p-2 rounded border"
+        >
+          <li role="option">Test</li>
+        </ul>
+      </div>
+    </div>
+    <ul class="flex flex-row">
+      <li
+        class="h-[50px] w-[50px] flex items-center justify-center bg-white border rounded"
+      >
+        A
+      </li>
+    </ul>
+  </div>
+  <p class="text-xl font-bold">Question</p>
+  <ul>
+    <li class="px-4 py-2 bg-white rounded-lg border">Question 1</li>
+  </ul>
+</div>

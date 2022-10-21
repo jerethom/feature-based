@@ -22,7 +22,6 @@
     "@angular/router": "14.2.7",
     "@ngneat/tailwind": "7.0.3",
     "@ngneat/until-destroy": "^9.2.2",
-    "@rx-angular/cdk": "1.0.0-rc.2",
     "@rx-angular/state": "1.7.0",
     "@rx-angular/template": "1.0.0-rc.3",
     "dexie": "3.2.2",

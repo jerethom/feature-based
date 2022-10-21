@@ -20,7 +20,6 @@ specifiers:
   '@angular/router': 14.2.7
   '@ngneat/tailwind': 7.0.3
   '@ngneat/until-destroy': ^9.2.2
-  '@rx-angular/cdk': 1.0.0-rc.2
   '@rx-angular/eslint-plugin': 1.0.0
   '@rx-angular/state': 1.7.0
   '@rx-angular/template': 1.0.0-rc.3
@@ -61,7 +60,6 @@ dependencies:
   '@angular/router': 14.2.7_ahcso2t63m6sbcovgconupw2ne
   '@ngneat/tailwind': 7.0.3
   '@ngneat/until-destroy': 9.2.2_6ru3aas77li2beeohztaoj64yy
-  '@rx-angular/cdk': 1.0.0-rc.2_fnnik5fafq5z7xfzszxpwkmqbu
   '@rx-angular/state': 1.7.0_47zs2vppuqlmarenyfzclnoqyy
   '@rx-angular/template': 1.0.0-rc.3_2kroeqz3h2ot6vtstcnxoccg2a
   dexie: 3.2.2
