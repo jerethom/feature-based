@@ -1,0 +1,40 @@
+<div
+  class="grid grid-cols-[auto,1fr] gap-2 items-center"
+  *rxLet="state.select('focused'); let focused"
+>
+  <em class="fa-solid fa-magnifying-glass"></em>
+  <input
+    type="text"
+    class="w-full"
+    placeholder="Créer ou rechercher une feature"
+    fbInput
+    cdkOverlayOrigin
+    #input="cdkOverlayOrigin"
+    (focus)="state.set({ focused: true })"
+  />
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="input"
+    [cdkConnectedOverlayOpen]="focused"
+    [cdkConnectedOverlayPositions]="positions"
+    [cdkConnectedOverlayWidth]="input.elementRef.nativeElement.offsetWidth"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    (backdropClick)="state.set({ focused: false })"
+  >
+    <ul
+      cdkListbox
+      cdkListboxMultiple
+      class="bg-white p-1 rounded border w-full shadow-md"
+    >
+      <li
+        *rxFor="let _ of [1, 2, 3, 4, 5]"
+        [cdkOption]="_"
+        class="outline-none transition rounded border border-transparent focus:border-slate-500 p-1 cursor-pointer aria-selected:bg-slate-200"
+      >
+        <ng-content select=""></ng-content>
+        Test
+      </li>
+    </ul>
+  </ng-template>
+</div>

@@ -1,5 +1,7 @@
+import { CdkListboxModule } from '@angular/cdk/listbox';
+import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { NgClass, NgIf } from '@angular/common';
+import { NgClass, NgForOf, NgIf } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,6 +14,7 @@ import { RxState } from '@rx-angular/state';
 import { LetModule, PushModule } from '@rx-angular/template';
 import { filter } from 'rxjs';
 
+import { DropdownComponent } from '../../components/form/dropdown/dropdown.component';
 import { InputDirective } from '../../directives/input.directive';
 import { Feature } from '../../models/feature';
 import { FeatureService } from '../../services/feature.service';
@@ -29,6 +32,10 @@ import { FeatureService } from '../../services/feature.service';
     FormsModule,
     TextFieldModule,
     InputDirective,
+    CdkListboxModule,
+    OverlayModule,
+    NgForOf,
+    DropdownComponent,
   ],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +56,23 @@ export class FeaturePageComponent implements OnInit {
     'focus:ring-offset-2',
     'focus:ring-slate-600',
     'rounded-md',
+  ];
+
+  readonly positions: ConnectedPosition[] = [
+    {
+      originX: 'start',
+      originY: 'bottom',
+      overlayX: 'start',
+      overlayY: 'top',
+      offsetY: 5,
+    },
+    {
+      originX: 'start',
+      originY: 'top',
+      overlayX: 'start',
+      overlayY: 'bottom',
+      offsetY: 5,
+    },
   ];
 
   constructor(

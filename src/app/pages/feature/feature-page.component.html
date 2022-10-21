@@ -15,28 +15,42 @@
   ></div>
   <p class="text-xl font-bold">Implique</p>
   <div class="grid grid-cols-1 gap-2">
+    <fb-dropdown></fb-dropdown>
     <div class="grid grid-cols-[auto,1fr] gap-2 items-center">
       <em class="fa-solid fa-magnifying-glass"></em>
-      <div class="relative">
-        <input
-          type="text"
-          class="w-full"
-          fbInput
-          placeholder="Créer ou rechercher une feature"
-          role="combobox"
-          aria-autocomplete="both"
-          aria-expanded="true"
-          aria-controls="cb1-listbox"
-        />
+      <input
+        type="text"
+        class="w-full"
+        placeholder="Créer ou rechercher une feature"
+        fbInput
+        cdkOverlayOrigin
+        #input="cdkOverlayOrigin"
+        (focus)="input.elementRef.nativeElement['_focused'] = true"
+      />
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="input"
+        [cdkConnectedOverlayOpen]="input.elementRef.nativeElement['_focused']"
+        [cdkConnectedOverlayPositions]="positions"
+        [cdkConnectedOverlayWidth]="input.elementRef.nativeElement.offsetWidth"
+        [cdkConnectedOverlayHasBackdrop]="true"
+        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+        (backdropClick)="input.elementRef.nativeElement['_focused'] = false"
+      >
         <ul
-          id="cb1-listbox"
-          role="listbox"
-          aria-label="States"
-          class="absolute left-0 right-0 top-[calc(100%+0.2rem)] bg-white p-2 rounded border"
+          cdkListbox
+          cdkListboxMultiple
+          class="bg-white p-1 rounded border w-full shadow-md"
         >
-          <li role="option">Test</li>
+          <li
+            *ngFor="let _ of [1, 2, 3, 4, 5]"
+            [cdkOption]="_"
+            class="outline-none transition rounded border border-transparent focus:border-slate-500 p-1 cursor-pointer aria-selected:bg-slate-200"
+          >
+            Test
+          </li>
         </ul>
-      </div>
+      </ng-template>
     </div>
     <ul class="flex flex-row">
       <li
