@@ -2,16 +2,27 @@
   class="grid grid-cols-[auto,1fr] gap-2 items-center"
   *rxLet="state.select('focused'); let focused"
 >
-  <em class="fa-solid fa-magnifying-glass"></em>
-  <input
-    type="text"
-    class="w-full"
-    placeholder="Créer ou rechercher une feature"
+  <ng-content select="[preIcon]"></ng-content>
+  <div
+    class="group flex justify-center gap-1"
     fbInput
     cdkOverlayOrigin
     #input="cdkOverlayOrigin"
-    (focus)="state.set({ focused: true })"
-  />
+  >
+    <ng-container *rxFor="let item of value">
+      <ng-container
+        *ngTemplateOutlet="selected; context: { $implicit: item }"
+      ></ng-container>
+    </ng-container>
+    <input
+      type="text"
+      class="w-full outline-none"
+      placeholder="Créer ou rechercher une feature"
+      (focus)="isFocused(true)"
+      (input)="onSearch($event)"
+    />
+  </div>
+  <ng-content select="[postIcon]"></ng-content>
   <ng-template
     cdkConnectedOverlay
     [cdkConnectedOverlayOrigin]="input"
@@ -20,20 +31,27 @@
     [cdkConnectedOverlayWidth]="input.elementRef.nativeElement.offsetWidth"
     [cdkConnectedOverlayHasBackdrop]="true"
     cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
-    (backdropClick)="state.set({ focused: false })"
+    (backdropClick)="isFocused(false)"
   >
     <ul
       cdkListbox
-      cdkListboxMultiple
-      class="bg-white p-1 rounded border w-full shadow-md"
+      [cdkListboxMultiple]="state.select('multi') | push: 'native'"
+      (cdkListboxValueChange)="writeValue($event.value)"
+      [cdkListboxValue]="state.select('values') | push: 'native'"
+      class="bg-white p-1 rounded border w-full shadow-md max-h-40 overflow-y-auto space-y-1"
     >
       <li
-        *rxFor="let _ of [1, 2, 3, 4, 5]"
-        [cdkOption]="_"
+        *rxFor="
+          let item of state.select('filteredItems');
+          trackBy: trackByValue
+        "
+        [cdkOption]="item.value"
+        [ngClass]="{ hidden: !item.display }"
         class="outline-none transition rounded border border-transparent focus:border-slate-500 p-1 cursor-pointer aria-selected:bg-slate-200"
       >
-        <ng-content select=""></ng-content>
-        Test
+        <ng-container
+          *ngTemplateOutlet="option; context: { $implicit: item.value }"
+        ></ng-container>
       </li>
     </ul>
   </ng-template>

@@ -12,9 +12,13 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RxState } from '@rx-angular/state';
 import { LetModule, PushModule } from '@rx-angular/template';
-import { filter } from 'rxjs';
+import { filter, of } from 'rxjs';
 
-import { DropdownComponent } from '../../components/form/dropdown/dropdown.component';
+import {
+  DropdownComponent,
+  DropdownOptionDirective,
+  DropdownSelectedDirective,
+} from '../../components/form/dropdown/dropdown.component';
 import { InputDirective } from '../../directives/input.directive';
 import { Feature } from '../../models/feature';
 import { FeatureService } from '../../services/feature.service';
@@ -36,6 +40,8 @@ import { FeatureService } from '../../services/feature.service';
     OverlayModule,
     NgForOf,
     DropdownComponent,
+    DropdownOptionDirective,
+    DropdownSelectedDirective,
   ],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,33 +64,21 @@ export class FeaturePageComponent implements OnInit {
     'rounded-md',
   ];
 
-  readonly positions: ConnectedPosition[] = [
-    {
-      originX: 'start',
-      originY: 'bottom',
-      overlayX: 'start',
-      overlayY: 'top',
-      offsetY: 5,
-    },
-    {
-      originX: 'start',
-      originY: 'top',
-      overlayX: 'start',
-      overlayY: 'bottom',
-      offsetY: 5,
-    },
-  ];
-
   constructor(
     public readonly featureService: FeatureService,
-    public readonly activatedRoute: ActivatedRoute
+    public readonly activatedRoute: ActivatedRoute,
+    public readonly state: RxState<{ items: number[]; values: number[] }>
   ) {}
 
   ngOnInit(): void {
+    this.state.set({
+      items: Array(10)
+        .fill(null)
+        .map((el, index) => index),
+      values: [0, 5],
+    });
     this.featureService.getById(this.activatedRoute.snapshot.params['id']);
   }
-
-  @HostListener('keydown.escape') onEscape() {}
 
   updateFeatureName($event: Event, feature: Feature) {
     this.featureService.update(feature.id, {
@@ -96,6 +90,10 @@ export class FeaturePageComponent implements OnInit {
     this.featureService.update(feature.id, {
       description: this.convert(($event.target as HTMLDivElement).innerHTML),
     });
+  }
+
+  searchFn(item: number, search: string) {
+    return new RegExp(search, 'gi').test(item.toString());
   }
 
   private convert(html: string): string {
