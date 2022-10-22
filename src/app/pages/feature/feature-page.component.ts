@@ -96,6 +96,19 @@ export class FeaturePageComponent implements OnInit {
     return new RegExp(search, 'gi').test(item.toString());
   }
 
+  removeSelected(selected: number) {
+    this.state.set('values', ({ values }) => {
+      const el = values.filter((value) => value !== selected);
+      console.log(el);
+      return el;
+    });
+  }
+
+  setValues($event: number[]) {
+    console.log($event);
+    this.state.set({ values: $event });
+  }
+
   private convert(html: string): string {
     return html.replace(/<div>/gi, '<p>').replace(/<\/div>/gi, '</p>');
   }

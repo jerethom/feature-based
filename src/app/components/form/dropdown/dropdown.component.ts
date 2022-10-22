@@ -1,3 +1,4 @@
+import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import { CdkListboxModule } from '@angular/cdk/listbox';
 import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
@@ -7,7 +8,6 @@ import {
   ContentChild,
   Directive,
   Input,
-  Pipe,
   TemplateRef,
 } from '@angular/core';
 import {
@@ -100,6 +100,12 @@ export class DropdownComponent<T> implements ControlValueAccessor {
     });
   }
 
+  @Input() set closeOnSelect(input: BooleanInput) {
+    this.state.set({
+      closeOnSelect: coerceBooleanProperty(input),
+    });
+  }
+
   @Input() searchFn: (item: T, search: string) => boolean = () => true;
 
   readonly value = this.state.select('values');
@@ -128,6 +134,7 @@ export class DropdownComponent<T> implements ControlValueAccessor {
     public readonly state: RxState<{
       focused: boolean;
       disabled: boolean;
+      closeOnSelect: boolean;
       multi: boolean;
       search: string;
       items: T[];
@@ -138,6 +145,7 @@ export class DropdownComponent<T> implements ControlValueAccessor {
     this.state.set({
       focused: false,
       disabled: false,
+      closeOnSelect: false,
       multi: false,
       search: '',
       items: [],
@@ -161,13 +169,16 @@ export class DropdownComponent<T> implements ControlValueAccessor {
     );
   }
 
-  writeValue(obj: any): void {
-    console.log(obj);
+  writeValue(obj: readonly T[]): void {
     if (Array.isArray(obj)) {
       this.state.set({
         values: obj,
       });
     }
+    if (this.state.get('closeOnSelect')) {
+      this.isFocused(false);
+    }
+    this.onChange?.(obj);
   }
 
   isFocused(focused: boolean) {

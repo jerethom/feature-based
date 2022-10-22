@@ -21,20 +21,25 @@
       [multi]="true"
       [searchFn]="searchFn"
       [ngModel]="state.select('values') | push: 'native'"
-      (ngModelChange)="state.set({ values: $event })"
+      (ngModelChange)="setValues($event)"
+      closeOnSelect
     >
       <div
-        class="px-1 border rounded bg-slate-200"
-        *fbDropdownSelected="items; let value"
+        class="px-2 border rounded bg-slate-200 grid grid-cols-2 items-center gap-2"
+        *fbDropdownSelected="items; let selected"
       >
-        {{ value }}
+        <span>{{ selected }}</span>
+        <em
+          class="fa-solid fa-xmark cursor-pointer"
+          (click)="removeSelected(selected)"
+        ></em>
       </div>
       <ng-container preIcon>
         <em class="fa-solid fa-magnifying-glass"></em>
       </ng-container>
-      <ng-container *fbDropdownOption="items; let option">
+      <div *fbDropdownOption="items; let option">
         {{ option }}
-      </ng-container>
+      </div>
     </fb-dropdown>
     <ul class="flex flex-row">
       <li
