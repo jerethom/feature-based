@@ -33,16 +33,21 @@ export const appRouting: Routes = [
     title: 'Feature | FeatureBased',
   },
   {
-    path: 'project',
-    children: [
-      {
-        path: ':id',
-        loadComponent: () =>
-          import('./pages/project/project-page.component').then(
-            ({ ProjectPageComponent }) => ProjectPageComponent
-          ),
-        title: 'Projet | FeatureBased',
-      },
-    ],
+    matcher: (url): UrlMatchResult | null => {
+      if (url.length === 1 && url[0].path.match(/^project-[\w-]+$/gm)) {
+        return {
+          consumed: url,
+          posParams: {
+            id: new UrlSegment(url[0].path.replace('project-', ''), {}),
+          },
+        };
+      }
+      return null;
+    },
+    loadComponent: () =>
+      import('./pages/project/project-page.component').then(
+        ({ ProjectPageComponent }) => ProjectPageComponent
+      ),
+    title: 'Projet | FeatureBased',
   },
 ];
