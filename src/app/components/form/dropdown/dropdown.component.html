@@ -1,10 +1,10 @@
 <div
-  class="grid grid-cols-[auto,1fr] gap-2 items-center"
+  class="grid grid-cols-[1rem,1fr] gap-2 place-items-center"
   *rxLet="state.select('focused'); let focused"
 >
   <ng-content select="[preIcon]"></ng-content>
   <div
-    class="group flex items-center flex-wrap gap-1"
+    class="group flex items-center flex-wrap gap-1 w-full"
     fbInput
     cdkOverlayOrigin
     #input="cdkOverlayOrigin"
@@ -16,7 +16,7 @@
     </ng-container>
     <input
       type="text"
-      class="w-full outline-none"
+      class="w-full outline-none placeholder:text-slate-500"
       [placeholder]="state.select('placeholder') | push: 'native'"
       (focus)="isFocused(true)"
       (input)="onSearch($event)"

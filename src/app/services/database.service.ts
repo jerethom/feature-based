@@ -16,9 +16,9 @@ export class DatabaseService extends Dexie {
   constructor() {
     super('featureBased');
     this.version(1).stores({
-      projects: '&id, name, *features',
-      features: '&id, name, description, *presentation, *implies, *questions',
-      questions: '&id, content, discussion, answer',
+      projects: Project.schema,
+      features: Feature.schema,
+      questions: Question.schema,
     });
   }
 }

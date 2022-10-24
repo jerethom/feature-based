@@ -12,7 +12,7 @@ import {
 import { ActivatedRoute, RouterLinkWithHref } from '@angular/router';
 import { RxState } from '@rx-angular/state';
 import { ForModule, LetModule, PushModule } from '@rx-angular/template';
-import { filter, switchMap } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs';
 
 import {
   DropdownComponent,
@@ -65,10 +65,13 @@ export class FeaturePageComponent implements OnInit {
 
   readonly linkedQuestions$ = this.state.select('linkedQuestions');
 
+  readonly images$ = this.state.select('images');
+
   readonly featureClass = [
     'w-full',
     'outline-none',
     'overflow-hidden',
+    'transition',
     'hover:ring',
     'hover:ring-slate-400',
     'focus:border-transparent',
@@ -93,6 +96,7 @@ export class FeaturePageComponent implements OnInit {
       otherFeatures: Feature[];
       linkedFeatures: Feature[];
       linkedQuestions: Question[];
+      images: string[];
     }>
   ) {
     this.state.set({
@@ -102,20 +106,27 @@ export class FeaturePageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const id = this.activatedRoute.snapshot.params['id'];
+    const id$ = this.activatedRoute.params.pipe(map((params) => params['id']));
 
-    this.state.connect('project', this.projectService.getFromFeatureById(id));
+    this.state.connect(
+      'project',
+      id$.pipe(switchMap((id) => this.projectService.getFromFeatureById(id)))
+    );
 
     this.state.connect(
       'feature',
-      this.featureService
-        .getFeature(id)
-        .pipe(filter((el): el is Feature => !!el))
+      id$.pipe(
+        switchMap((id) =>
+          this.featureService
+            .getFeature(id)
+            .pipe(filter((el): el is Feature => !!el))
+        )
+      )
     );
 
     this.state.connect(
       'otherFeatures',
-      this.featureService.getOtherFeatures(id)
+      id$.pipe(switchMap((id) => this.featureService.getOtherFeatures(id)))
     );
 
     this.state.connect(
@@ -133,6 +144,17 @@ export class FeaturePageComponent implements OnInit {
           switchMap((questions) => this.questionService.getQuestions(questions))
         )
     );
+
+    this.state.connect(
+      'images',
+      this.state
+        .select('feature', 'images')
+        .pipe(
+          map((images) =>
+            images.map((image) => `data:image/png;base64,${image}`)
+          )
+        )
+    );
   }
 
   updateFeatureName($event: Event, feature: Feature) {
@@ -148,7 +170,7 @@ export class FeaturePageComponent implements OnInit {
   }
 
   searchFn(item: Feature, search: string) {
-    return new RegExp(search, 'gi').test(item.name.toString());
+    return new RegExp(search.toLowerCase(), 'gi').test(item.name.toLowerCase());
   }
 
   compareFn(a: Feature, b: Feature) {
@@ -175,7 +197,9 @@ export class FeaturePageComponent implements OnInit {
     }
   }
 
-  removeImply(feature: Feature) {
+  unlinkImply(feature: Feature, $event: MouseEvent) {
+    $event.preventDefault();
+    $event.stopPropagation();
     const origin = this.state.get('feature');
     this.featureService.update(origin.id, {
       ...origin,

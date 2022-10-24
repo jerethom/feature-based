@@ -18,7 +18,17 @@
       <ng-container *rxFor="let feature of features$; trackBy: trackBy.id">
         <a [routerLink]="['/feature-' + feature.id]">
           <div class="p-5 rounded border bg-white hover:shadow-md transition">
-            {{ feature.name }}
+            <p class="font-bold">{{ feature.name }}</p>
+            <div class="text-sm mt-2 grid grid-cols-2">
+              <p>
+                <span class="font-bold">{{ feature.implies.length }}</span>
+                implication(s)
+              </p>
+              <p>
+                <span class="font-bold">{{ feature.questions.length }}</span>
+                question(s)
+              </p>
+            </div>
           </div>
         </a>
       </ng-container>

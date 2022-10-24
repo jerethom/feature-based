@@ -24,6 +24,21 @@
     [ngClass]="featureClass"
     [innerHTML]="feature.description"
   ></div>
+
+  <p class="text-xl font-bold">Images</p>
+
+  <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
+    <div
+      class="flex items-center justify-center flex-col gap-2 p-4 bg-white border rounded cursor-pointer hover:shadow-md transition"
+    >
+      <i class="fa-solid fa-file-arrow-up"></i>
+      <span>Ajouter une image</span>
+    </div>
+    <div>
+      <img class="object-contain" [src]="image" *rxFor="let image of images$" />
+    </div>
+  </div>
+
   <p class="text-xl font-bold">Implique</p>
   <div class="grid grid-cols-1 gap-2">
     <fb-dropdown
@@ -39,9 +54,6 @@
       <ng-container preIcon>
         <em class="fa-solid fa-magnifying-glass"></em>
       </ng-container>
-      <ng-template fbDropdownEmptySearch>
-        <span>Créer la feature</span>
-      </ng-template>
       <ng-template fbDropownSelected let-selected>
         <div
           class="px-2 border rounded bg-slate-200 grid grid-cols-[max-content,auto] items-center gap-2"
@@ -60,19 +72,32 @@
     <ul class="flex flex-row flex-wrap gap-4">
       <li
         *rxFor="let feature of linkedFeatures$"
-        class="pl-4 flex items-center justify-center bg-white border rounded"
+        class="bg-white border rounded hover:shadow-md transition"
       >
-        <p>{{ feature.name }}</p>
-        <em
-          class="fa-solid fa-xmark cursor-pointer p-4"
-          (click)="removeImply(feature)"
-        ></em>
+        <a
+          class="pl-4 flex items-center justify-center"
+          [routerLink]="['/feature-' + feature.id]"
+        >
+          <p>{{ feature.name }}</p>
+          <em
+            class="fa-solid fa-link-slash cursor-pointer p-4"
+            (click)="unlinkImply(feature, $event)"
+          >
+          </em>
+        </a>
       </li>
     </ul>
   </div>
+
   <p class="text-xl font-bold">Question</p>
+
   <div class="grid grid-cols-1 gap-2">
-    <form [formGroup]="formNewQuestion" (ngSubmit)="createNewQuestion(feature)">
+    <form
+      class="grid grid-cols-[1rem,1fr] gap-2 place-items-center justify-center"
+      [formGroup]="formNewQuestion"
+      (ngSubmit)="createNewQuestion(feature)"
+    >
+      <em class="fa-solid fa-question"></em>
       <input
         type="text"
         class="w-full"
