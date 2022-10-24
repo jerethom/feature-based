@@ -3,7 +3,12 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { NgClass, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RxState } from '@rx-angular/state';
 import { ForModule, LetModule, PushModule } from '@rx-angular/template';
@@ -18,8 +23,10 @@ import {
 import { InputDirective } from '../../directives/input.directive';
 import { Feature } from '../../models/feature';
 import { Project } from '../../models/project';
+import { Question } from '../../models/question';
 import { FeatureService } from '../../services/feature.service';
 import { ProjectService } from '../../services/project.service';
+import { QuestionService } from '../../services/question.service';
 
 @Component({
   selector: 'fb-feature-page',
@@ -41,6 +48,7 @@ import { ProjectService } from '../../services/project.service';
     DropdownSelectedDirective,
     DropdownEmptySearchDirective,
     ForModule,
+    ReactiveFormsModule,
   ],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +59,8 @@ export class FeaturePageComponent implements OnInit {
   readonly otherFeatures$ = this.state.select('otherFeatures');
 
   readonly linkedFeatures$ = this.state.select('linkedFeatures');
+
+  readonly linkedQuestions$ = this.state.select('linkedQuestions');
 
   readonly featureClass = [
     'w-full',
@@ -65,7 +75,12 @@ export class FeaturePageComponent implements OnInit {
     'rounded-md',
   ];
 
+  readonly formNewQuestion = new FormGroup({
+    title: new FormControl<null | string>(null),
+  });
+
   constructor(
+    public readonly questionService: QuestionService,
     public readonly featureService: FeatureService,
     public readonly projectService: ProjectService,
     public readonly activatedRoute: ActivatedRoute,
@@ -74,6 +89,7 @@ export class FeaturePageComponent implements OnInit {
       feature: Feature;
       otherFeatures: Feature[];
       linkedFeatures: Feature[];
+      linkedQuestions: Question[];
     }>
   ) {
     this.state.set({
@@ -84,6 +100,8 @@ export class FeaturePageComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.activatedRoute.snapshot.params['id'];
+
+    this.state.connect('project', this.projectService.getFromFeatureById(id));
 
     this.state.connect(
       'feature',
@@ -97,13 +115,20 @@ export class FeaturePageComponent implements OnInit {
       this.featureService.getOtherFeatures(id)
     );
 
-    this.state.connect('project', this.projectService.getFromFeatureById(id));
-
     this.state.connect(
       'linkedFeatures',
       this.state
         .select('feature', 'implies')
         .pipe(switchMap((implies) => this.featureService.getFeatures(implies)))
+    );
+
+    this.state.connect(
+      'linkedQuestions',
+      this.state
+        .select('feature', 'questions')
+        .pipe(
+          switchMap((questions) => this.questionService.getQuestions(questions))
+        )
     );
   }
 
@@ -157,5 +182,22 @@ export class FeaturePageComponent implements OnInit {
 
   private convert(html: string): string {
     return html.replace(/<div>/gi, '<p>').replace(/<\/div>/gi, '</p>');
+  }
+
+  async createNewQuestion(feature: Feature) {
+    if (this.formNewQuestion.invalid) return;
+
+    await this.questionService.create(feature, [
+      this.formNewQuestion.getRawValue().title as string,
+    ]);
+
+    this.formNewQuestion.reset();
+  }
+
+  removeLinkedQuestion(feature: Feature, question: Question) {
+    this.featureService.update(feature.id, {
+      ...feature,
+      questions: feature.questions.filter((el) => el !== question.id),
+    });
   }
 }

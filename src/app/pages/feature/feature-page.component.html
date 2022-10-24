@@ -45,7 +45,7 @@
         <span>{{ option.name }}</span>
       </ng-template>
     </fb-dropdown>
-    <ul class="flex flex-row gap-4">
+    <ul class="flex flex-row flex-wrap gap-4">
       <li
         *rxFor="let feature of linkedFeatures$"
         class="pl-4 flex items-center justify-center bg-white border rounded"
@@ -59,7 +59,27 @@
     </ul>
   </div>
   <p class="text-xl font-bold">Question</p>
-  <ul>
-    <li class="px-4 py-2 bg-white rounded-lg border">Question 1</li>
-  </ul>
+  <div class="grid grid-cols-1 gap-2">
+    <form [formGroup]="formNewQuestion" (ngSubmit)="createNewQuestion(feature)">
+      <input
+        type="text"
+        class="w-full"
+        fbInput
+        placeholder="Créer une question"
+        formControlName="title"
+      />
+    </form>
+    <ul class="flex flex-row flex-wrap gap-4">
+      <li
+        class="pl-4 flex items-center justify-center bg-white border rounded"
+        *rxFor="let question of linkedQuestions$"
+      >
+        <p>{{ question.content }}</p>
+        <em
+          class="fa-solid fa-xmark cursor-pointer p-4"
+          (click)="removeLinkedQuestion(feature, question)"
+        ></em>
+      </li>
+    </ul>
+  </div>
 </div>
