@@ -7,7 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RxState } from '@rx-angular/state';
 import { ForModule, LetModule, PushModule } from '@rx-angular/template';
-import { filter } from 'rxjs';
+import { filter, switchMap } from 'rxjs';
 
 import {
   DropdownComponent,
@@ -73,7 +73,7 @@ export class FeaturePageComponent implements OnInit {
       project: Project;
       feature: Feature;
       otherFeatures: Feature[];
-      linkedFeatures: string[];
+      linkedFeatures: Feature[];
     }>
   ) {
     this.state.set({
@@ -84,20 +84,26 @@ export class FeaturePageComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.activatedRoute.snapshot.params['id'];
+
     this.state.connect(
       'feature',
       this.featureService
         .getFeature(id)
         .pipe(filter((el): el is Feature => !!el))
     );
+
     this.state.connect(
       'otherFeatures',
       this.featureService.getOtherFeatures(id)
     );
+
     this.state.connect('project', this.projectService.getFromFeatureById(id));
+
     this.state.connect(
       'linkedFeatures',
-      this.state.select('feature', 'implies')
+      this.state
+        .select('feature', 'implies')
+        .pipe(switchMap((implies) => this.featureService.getFeatures(implies)))
     );
   }
 
@@ -117,25 +123,36 @@ export class FeaturePageComponent implements OnInit {
     return new RegExp(search, 'gi').test(item.name.toString());
   }
 
-  compareFn(a: Feature['id'], b: Feature) {
-    return a === b?.id;
+  compareFn(a: Feature, b: Feature) {
+    return a?.id === b?.id;
   }
 
   removeSelected(selected: Feature) {
     this.state.set('linkedFeatures', ({ linkedFeatures }) =>
-      linkedFeatures.filter((value) => value !== selected.id)
+      linkedFeatures.filter((value) => value.id !== selected.id)
     );
   }
 
-  linkFeatures($event: string[]) {
-    console.log($event);
+  linkFeatures($event: Feature[]) {
     const feature = this.state.get('feature');
-    if (feature && feature.implies.length !== $event.length) {
+    const mapIds = $event.map((el) => el.id);
+    const isDiff =
+      $event.length &&
+      JSON.stringify(mapIds) !== JSON.stringify(feature.implies);
+    if (isDiff) {
       this.featureService.update(feature.id, {
         ...feature,
-        implies: $event,
+        implies: $event.map((el) => el.id),
       });
     }
+  }
+
+  removeImply(feature: Feature) {
+    const origin = this.state.get('feature');
+    this.featureService.update(origin.id, {
+      ...origin,
+      implies: origin.implies.filter((id) => id !== feature.id),
+    });
   }
 
   private convert(html: string): string {

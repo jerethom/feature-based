@@ -17,7 +17,6 @@ export class FeatureService {
     private readonly databaseService: DatabaseService,
     private readonly projectService: ProjectService
   ) {}
-
   getFeature(id: Feature['id']) {
     return wrapDixieObservable(
       liveQuery(() =>
@@ -58,6 +57,16 @@ export class FeatureService {
               .bulkGet(project?.features ?? [])
               .then((res) => res.filter((el): el is Feature => !!el))
           )
+      )
+    );
+  }
+
+  getFeatures(implies: string[] = []) {
+    return wrapDixieObservable(
+      liveQuery(() =>
+        this.databaseService.features
+          .bulkGet(implies)
+          .then((res) => res.filter((el): el is Feature => !!el))
       )
     );
   }

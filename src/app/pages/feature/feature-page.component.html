@@ -45,12 +45,16 @@
         <span>{{ option.name }}</span>
       </ng-template>
     </fb-dropdown>
-    <ul class="flex flex-row">
+    <ul class="flex flex-row gap-4">
       <li
         *rxFor="let feature of linkedFeatures$"
-        class="p-4 flex items-center justify-center bg-white border rounded"
+        class="pl-4 flex items-center justify-center bg-white border rounded"
       >
-        {{ feature }}
+        <p>{{ feature.name }}</p>
+        <em
+          class="fa-solid fa-xmark cursor-pointer p-4"
+          (click)="removeImply(feature)"
+        ></em>
       </li>
     </ul>
   </div>
