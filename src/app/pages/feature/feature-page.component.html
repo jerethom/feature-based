@@ -1,8 +1,19 @@
+<div class="pb-4">
+  <a
+    class="inline-flex items-center gap-2"
+    *rxLet="project$; let project"
+    [routerLink]="['/project-' + project.id]"
+  >
+    <em class="fa-solid fa-arrow-left"></em>
+    <span class="underline">{{ project.name }}</span>
+  </a>
+</div>
+
 <div class="grid grid-cols-1 gap-4" *rxLet="feature$; let feature">
   <div
     contenteditable="true"
     (blur)="updateFeatureName($event, feature)"
-    class="text-2xl"
+    class="text-2xl font-bold"
     [ngClass]="featureClass"
     [innerHTML]="feature.name"
   ></div>
@@ -21,6 +32,7 @@
       [compareFn]="compareFn"
       [ngModel]="linkedFeatures$ | push: 'native'"
       (ngModelChange)="linkFeatures($event)"
+      placeholder="Rechercher une feature"
       closeOnSelect
       multi
     >
@@ -76,7 +88,7 @@
       >
         <p>{{ question.content }}</p>
         <em
-          class="fa-solid fa-xmark cursor-pointer p-4"
+          class="fa-solid fa-trash-can cursor-pointer p-4"
           (click)="removeLinkedQuestion(feature, question)"
         ></em>
       </li>

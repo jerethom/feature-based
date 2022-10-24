@@ -17,7 +17,7 @@
     <input
       type="text"
       class="w-full outline-none"
-      placeholder="Créer ou rechercher une feature"
+      [placeholder]="state.select('placeholder') | push: 'native'"
       (focus)="isFocused(true)"
       (input)="onSearch($event)"
     />

@@ -1,21 +1,37 @@
 <div *rxLet="project$; let project" class="space-y-8">
   <p class="text-xl font-bold mb-4">{{ project.name }}</p>
 
-  <form [formGroup]="formNewFeature" (ngSubmit)="handleNewFeature(project)">
-    <input
-      fbInput
-      type="text"
-      class="w-full"
-      placeholder="Créer une nouvelle feature"
-      formControlName="name"
-    />
-  </form>
+  <div class="space-y-4">
+    <p class="text-lg font-bold">Features</p>
 
-  <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
-    <ng-container *rxFor="let feature of features$; trackBy: trackBy.id">
-      <a [routerLink]="['/feature-' + feature.id]">
-        <div class="p-5 rounded border bg-white">{{ feature.name }}</div>
-      </a>
-    </ng-container>
+    <form [formGroup]="formNewFeature" (ngSubmit)="handleNewFeature(project)">
+      <input
+        fbInput
+        type="text"
+        class="w-full"
+        placeholder="Créer une nouvelle feature"
+        formControlName="name"
+      />
+    </form>
+
+    <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
+      <ng-container *rxFor="let feature of features$; trackBy: trackBy.id">
+        <a [routerLink]="['/feature-' + feature.id]">
+          <div class="p-5 rounded border bg-white hover:shadow-md transition">
+            {{ feature.name }}
+          </div>
+        </a>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <p class="text-lg font-bold">Questions</p>
+
+    <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
+      <ng-container *rxFor="let question of questions$; trackBy: trackBy.id">
+        <div class="p-5 rounded border bg-white">{{ question.content }}</div>
+      </ng-container>
+    </div>
   </div>
 </div>

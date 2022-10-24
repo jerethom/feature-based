@@ -117,6 +117,12 @@ export class DropdownComponent<T> implements ControlValueAccessor {
     });
   }
 
+  @Input() set placeholder(input: string) {
+    this.state.set({
+      placeholder: input,
+    });
+  }
+
   @Input() searchFn: (item: T, search: string) => boolean = () => true;
 
   @Input() compareFn?: (item: any, option: T) => boolean;
@@ -166,6 +172,7 @@ export class DropdownComponent<T> implements ControlValueAccessor {
       filteredItems: { value: T; display: boolean }[];
       displayableItems: number;
       values: T[];
+      placeholder: string;
     }>
   ) {
     this.state.set({
@@ -178,6 +185,7 @@ export class DropdownComponent<T> implements ControlValueAccessor {
       filteredItems: [],
       displayableItems: 0,
       values: [],
+      placeholder: '',
     });
 
     this.state.connect(

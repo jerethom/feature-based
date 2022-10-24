@@ -9,7 +9,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLinkWithHref } from '@angular/router';
 import { RxState } from '@rx-angular/state';
 import { ForModule, LetModule, PushModule } from '@rx-angular/template';
 import { filter, switchMap } from 'rxjs';
@@ -49,11 +49,14 @@ import { QuestionService } from '../../services/question.service';
     DropdownEmptySearchDirective,
     ForModule,
     ReactiveFormsModule,
+    RouterLinkWithHref,
   ],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeaturePageComponent implements OnInit {
+  readonly project$ = this.state.select('project');
+
   readonly feature$ = this.state.select('feature');
 
   readonly otherFeatures$ = this.state.select('otherFeatures');
@@ -199,5 +202,6 @@ export class FeaturePageComponent implements OnInit {
       ...feature,
       questions: feature.questions.filter((el) => el !== question.id),
     });
+    this.questionService.delete(question.id);
   }
 }

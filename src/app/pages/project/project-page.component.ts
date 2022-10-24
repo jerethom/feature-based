@@ -15,8 +15,10 @@ import { filter, switchMap } from 'rxjs';
 import { InputDirective } from '../../directives/input.directive';
 import { Feature } from '../../models/feature';
 import { Project } from '../../models/project';
+import { Question } from '../../models/question';
 import { FeatureService } from '../../services/feature.service';
 import { ProjectService } from '../../services/project.service';
+import { QuestionService } from '../../services/question.service';
 import { TrackByService } from '../../services/track-by.service';
 
 @UntilDestroy()
@@ -42,6 +44,8 @@ export class ProjectPageComponent {
 
   readonly features$ = this.state.select('features');
 
+  readonly questions$ = this.state.select('questions');
+
   formNewFeature = new FormGroup({
     name: new FormControl(),
   });
@@ -49,9 +53,14 @@ export class ProjectPageComponent {
   constructor(
     public readonly activatedRoute: ActivatedRoute,
     public readonly projectService: ProjectService,
+    public readonly questionService: QuestionService,
     public readonly featureService: FeatureService,
     public readonly title: Title,
-    public readonly state: RxState<{ project: Project; features: Feature[] }>,
+    public readonly state: RxState<{
+      project: Project;
+      features: Feature[];
+      questions: Question[];
+    }>,
     public readonly trackBy: TrackByService
   ) {
     this.state.connect(
@@ -64,6 +73,7 @@ export class ProjectPageComponent {
         )
       )
     );
+
     this.state.connect(
       'features',
       this.activatedRoute.params.pipe(
@@ -72,6 +82,16 @@ export class ProjectPageComponent {
         )
       )
     );
+
+    this.state.connect(
+      'questions',
+      this.activatedRoute.params.pipe(
+        switchMap((params) =>
+          this.questionService.getQuestionsFromProjectById(params['id'])
+        )
+      )
+    );
+
     this.state.hold(this.project$, (project) =>
       this.title.setTitle(`${project.name.slice(0, 20)}... | FeatureBased`)
     );
