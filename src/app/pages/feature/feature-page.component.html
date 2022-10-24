@@ -16,36 +16,41 @@
   <p class="text-xl font-bold">Implique</p>
   <div class="grid grid-cols-1 gap-2">
     <fb-dropdown
-      *rxLet="state.select('items'); let items"
-      [items]="items"
-      [multi]="true"
+      [items]="otherFeatures$ | push: 'native'"
       [searchFn]="searchFn"
-      [ngModel]="state.select('values') | push: 'native'"
-      (ngModelChange)="setValues($event)"
+      [compareFn]="compareFn"
+      [ngModel]="linkedFeatures$ | push: 'native'"
+      (ngModelChange)="linkFeatures($event)"
       closeOnSelect
+      multi
     >
-      <div
-        class="px-2 border rounded bg-slate-200 grid grid-cols-2 items-center gap-2"
-        *fbDropdownSelected="items; let selected"
-      >
-        <span>{{ selected }}</span>
-        <em
-          class="fa-solid fa-xmark cursor-pointer"
-          (click)="removeSelected(selected)"
-        ></em>
-      </div>
       <ng-container preIcon>
         <em class="fa-solid fa-magnifying-glass"></em>
       </ng-container>
-      <div *fbDropdownOption="items; let option">
-        {{ option }}
-      </div>
+      <ng-template fbDropdownEmptySearch>
+        <span>Créer la feature</span>
+      </ng-template>
+      <ng-template fbDropownSelected let-selected>
+        <div
+          class="px-2 border rounded bg-slate-200 grid grid-cols-[max-content,auto] items-center gap-2"
+        >
+          <span>{{ selected.name }}</span>
+          <em
+            class="fa-solid fa-xmark cursor-pointer"
+            (click)="removeSelected(selected)"
+          ></em>
+        </div>
+      </ng-template>
+      <ng-template fbDropdownOption let-option>
+        <span>{{ option.name }}</span>
+      </ng-template>
     </fb-dropdown>
     <ul class="flex flex-row">
       <li
-        class="h-[50px] w-[50px] flex items-center justify-center bg-white border rounded"
+        *rxFor="let feature of linkedFeatures$"
+        class="p-4 flex items-center justify-center bg-white border rounded"
       >
-        A
+        {{ feature }}
       </li>
     </ul>
   </div>

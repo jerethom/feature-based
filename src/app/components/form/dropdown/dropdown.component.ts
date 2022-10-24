@@ -1,7 +1,7 @@
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import { CdkListboxModule } from '@angular/cdk/listbox';
 import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, NgClass, NgIf, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -17,7 +17,7 @@ import {
 } from '@angular/forms';
 import { RxState } from '@rx-angular/state';
 import { ForModule, LetModule, PushModule } from '@rx-angular/template';
-import { map, switchMap } from 'rxjs';
+import { combineLatest, map, switchMap } from 'rxjs';
 
 import { InputDirective } from '../../../directives/input.directive';
 
@@ -30,7 +30,7 @@ interface DropdownOptionTemplateContext<T> {
   standalone: true,
 })
 export class DropdownOptionDirective<T> {
-  @Input() fbDropdownOption!: T[];
+  @Input() fbDropdownOption!: T[] | '';
 
   static ngTemplateContextGuard<T>(
     dir: DropdownOptionDirective<T>,
@@ -45,7 +45,7 @@ export class DropdownOptionDirective<T> {
   standalone: true,
 })
 export class DropdownSelectedDirective<T> {
-  @Input() fbDropdownSelected!: T[];
+  @Input() fbDropdownSelected!: T[] | '';
 
   static ngTemplateContextGuard<T>(
     dir: DropdownSelectedDirective<T>,
@@ -54,6 +54,12 @@ export class DropdownSelectedDirective<T> {
     return true;
   }
 }
+
+@Directive({
+  selector: 'ng-template[fbDropdownEmptySearch]',
+  standalone: true,
+})
+export class DropdownEmptySearchDirective {}
 
 @Component({
   selector: 'fb-dropdown',
@@ -71,6 +77,8 @@ export class DropdownSelectedDirective<T> {
     PushModule,
     FormsModule,
     NgClass,
+    NgIf,
+    AsyncPipe,
   ],
   providers: [
     {
@@ -88,15 +96,18 @@ export class DropdownComponent<T> implements ControlValueAccessor {
   @ContentChild(DropdownSelectedDirective, { read: TemplateRef })
   selected!: TemplateRef<HTMLElement>;
 
+  @ContentChild(DropdownEmptySearchDirective, { read: TemplateRef })
+  emptySearch!: TemplateRef<HTMLElement>;
+
   @Input() set items(input: T[]) {
     this.state.set({
       items: input,
     });
   }
 
-  @Input() set multi(input: boolean) {
+  @Input() set multi(input: BooleanInput) {
     this.state.set({
-      multi: input,
+      multi: coerceBooleanProperty(input),
     });
   }
 
@@ -108,7 +119,21 @@ export class DropdownComponent<T> implements ControlValueAccessor {
 
   @Input() searchFn: (item: T, search: string) => boolean = () => true;
 
-  readonly value = this.state.select('values');
+  @Input() compareFn?: (item: any, option: T) => boolean;
+
+  readonly listBox$ = combineLatest([
+    this.state.select('multi'),
+    this.state.select('values'),
+    this.state.select('displayableItems'),
+    this.state.select('filteredItems'),
+  ]).pipe(
+    map(([multi, values, displayableItems, filteredItems]) => ({
+      multi,
+      values,
+      displayableItems,
+      filteredItems,
+    }))
+  );
 
   readonly positions: ConnectedPosition[] = [
     {
@@ -139,6 +164,7 @@ export class DropdownComponent<T> implements ControlValueAccessor {
       search: string;
       items: T[];
       filteredItems: { value: T; display: boolean }[];
+      displayableItems: number;
       values: T[];
     }>
   ) {
@@ -150,8 +176,10 @@ export class DropdownComponent<T> implements ControlValueAccessor {
       search: '',
       items: [],
       filteredItems: [],
+      displayableItems: 0,
       values: [],
     });
+
     this.state.connect(
       'filteredItems',
       this.state.select('items').pipe(
@@ -167,14 +195,27 @@ export class DropdownComponent<T> implements ControlValueAccessor {
         )
       )
     );
+
+    this.state.connect(
+      'displayableItems',
+      this.state
+        .select('filteredItems')
+        .pipe(
+          map((items) =>
+            items.reduce(
+              (previousValue, currentValue) =>
+                previousValue + (currentValue.display ? 1 : 0),
+              0
+            )
+          )
+        )
+    );
   }
 
   writeValue(obj: readonly T[]): void {
-    if (Array.isArray(obj)) {
-      this.state.set({
-        values: obj,
-      });
-    }
+    this.state.set({
+      values: obj as T[],
+    });
     if (this.state.get('closeOnSelect')) {
       this.isFocused(false);
     }
@@ -201,8 +242,8 @@ export class DropdownComponent<T> implements ControlValueAccessor {
     });
   }
 
-  trackByValue<T>(index: number, item: T) {
-    return item;
+  trackByValue<T>(index: number, item: { value: T; display: boolean }) {
+    return item.value;
   }
 
   onSearch($event: Event) {

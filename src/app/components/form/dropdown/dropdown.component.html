@@ -4,12 +4,12 @@
 >
   <ng-content select="[preIcon]"></ng-content>
   <div
-    class="group flex justify-center gap-1"
+    class="group flex items-center flex-wrap gap-1"
     fbInput
     cdkOverlayOrigin
     #input="cdkOverlayOrigin"
   >
-    <ng-container *rxFor="let item of value">
+    <ng-container *rxFor="let item of state.select('values')">
       <ng-container
         *ngTemplateOutlet="selected; context: { $implicit: item }"
       ></ng-container>
@@ -35,16 +35,26 @@
   >
     <ul
       cdkListbox
-      [cdkListboxMultiple]="state.select('multi') | push: 'native'"
+      *rxLet="listBox$; let listBox"
+      [cdkListboxMultiple]="listBox.multi"
       (cdkListboxValueChange)="writeValue($event.value)"
-      [cdkListboxValue]="state.select('values') | push: 'native'"
+      [cdkListboxValue]="listBox.values"
+      [cdkListboxCompareWith]="compareFn"
       class="bg-white p-1 rounded border w-full shadow-md max-h-40 overflow-y-auto space-y-1"
     >
       <li
-        *rxFor="
-          let item of state.select('filteredItems');
-          trackBy: trackByValue
-        "
+        [cdkOption]="null"
+        [ngClass]="{
+          hidden: listBox.displayableItems > 0
+        }"
+        class="outline-none transition rounded border border-transparent focus:border-slate-500 p-1 cursor-pointer aria-selected:bg-slate-200"
+      >
+        <ng-container
+          *ngTemplateOutlet="emptySearch || emptySearchDefault"
+        ></ng-container>
+      </li>
+      <li
+        *rxFor="let item of listBox.filteredItems; trackBy: trackByValue"
         [cdkOption]="item.value"
         [ngClass]="{ hidden: !item.display }"
         class="outline-none transition rounded border border-transparent focus:border-slate-500 p-1 cursor-pointer aria-selected:bg-slate-200"
@@ -56,3 +66,7 @@
     </ul>
   </ng-template>
 </div>
+
+<ng-template #emptySearchDefault>
+  <p class="text-center text-sub-app">Aucun résultat</p>
+</ng-template>

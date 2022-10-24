@@ -1,27 +1,25 @@
 import { CdkListboxModule } from '@angular/cdk/listbox';
-import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { NgClass, NgForOf, NgIf } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  OnInit,
-} from '@angular/core';
+import { NgClass, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RxState } from '@rx-angular/state';
-import { LetModule, PushModule } from '@rx-angular/template';
-import { filter, of } from 'rxjs';
+import { ForModule, LetModule, PushModule } from '@rx-angular/template';
+import { filter } from 'rxjs';
 
 import {
   DropdownComponent,
+  DropdownEmptySearchDirective,
   DropdownOptionDirective,
   DropdownSelectedDirective,
 } from '../../components/form/dropdown/dropdown.component';
 import { InputDirective } from '../../directives/input.directive';
 import { Feature } from '../../models/feature';
+import { Project } from '../../models/project';
 import { FeatureService } from '../../services/feature.service';
+import { ProjectService } from '../../services/project.service';
 
 @Component({
   selector: 'fb-feature-page',
@@ -38,18 +36,21 @@ import { FeatureService } from '../../services/feature.service';
     InputDirective,
     CdkListboxModule,
     OverlayModule,
-    NgForOf,
     DropdownComponent,
     DropdownOptionDirective,
     DropdownSelectedDirective,
+    DropdownEmptySearchDirective,
+    ForModule,
   ],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeaturePageComponent implements OnInit {
-  readonly feature$ = this.featureService.projectFeature$.pipe(
-    filter((feature): feature is Feature => !!feature)
-  );
+  readonly feature$ = this.state.select('feature');
+
+  readonly otherFeatures$ = this.state.select('otherFeatures');
+
+  readonly linkedFeatures$ = this.state.select('linkedFeatures');
 
   readonly featureClass = [
     'w-full',
@@ -66,18 +67,38 @@ export class FeaturePageComponent implements OnInit {
 
   constructor(
     public readonly featureService: FeatureService,
+    public readonly projectService: ProjectService,
     public readonly activatedRoute: ActivatedRoute,
-    public readonly state: RxState<{ items: number[]; values: number[] }>
-  ) {}
+    public readonly state: RxState<{
+      project: Project;
+      feature: Feature;
+      otherFeatures: Feature[];
+      linkedFeatures: string[];
+    }>
+  ) {
+    this.state.set({
+      otherFeatures: [],
+      linkedFeatures: [],
+    });
+  }
 
   ngOnInit(): void {
-    this.state.set({
-      items: Array(10)
-        .fill(null)
-        .map((el, index) => index),
-      values: [0, 5],
-    });
-    this.featureService.getById(this.activatedRoute.snapshot.params['id']);
+    const id = this.activatedRoute.snapshot.params['id'];
+    this.state.connect(
+      'feature',
+      this.featureService
+        .getFeature(id)
+        .pipe(filter((el): el is Feature => !!el))
+    );
+    this.state.connect(
+      'otherFeatures',
+      this.featureService.getOtherFeatures(id)
+    );
+    this.state.connect('project', this.projectService.getFromFeatureById(id));
+    this.state.connect(
+      'linkedFeatures',
+      this.state.select('feature', 'implies')
+    );
   }
 
   updateFeatureName($event: Event, feature: Feature) {
@@ -92,21 +113,29 @@ export class FeaturePageComponent implements OnInit {
     });
   }
 
-  searchFn(item: number, search: string) {
-    return new RegExp(search, 'gi').test(item.toString());
+  searchFn(item: Feature, search: string) {
+    return new RegExp(search, 'gi').test(item.name.toString());
   }
 
-  removeSelected(selected: number) {
-    this.state.set('values', ({ values }) => {
-      const el = values.filter((value) => value !== selected);
-      console.log(el);
-      return el;
-    });
+  compareFn(a: Feature['id'], b: Feature) {
+    return a === b?.id;
   }
 
-  setValues($event: number[]) {
+  removeSelected(selected: Feature) {
+    this.state.set('linkedFeatures', ({ linkedFeatures }) =>
+      linkedFeatures.filter((value) => value !== selected.id)
+    );
+  }
+
+  linkFeatures($event: string[]) {
     console.log($event);
-    this.state.set({ values: $event });
+    const feature = this.state.get('feature');
+    if (feature && feature.implies.length !== $event.length) {
+      this.featureService.update(feature.id, {
+        ...feature,
+        implies: $event,
+      });
+    }
   }
 
   private convert(html: string): string {

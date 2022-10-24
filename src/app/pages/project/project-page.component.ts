@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -6,21 +6,18 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  Router,
-  RouterLinkWithHref,
-} from '@angular/router';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { ActivatedRoute, RouterLinkWithHref } from '@angular/router';
+import { UntilDestroy } from '@ngneat/until-destroy';
+import { RxState } from '@rx-angular/state';
 import { ForModule, LetModule, PushModule } from '@rx-angular/template';
-import { filter, startWith } from 'rxjs';
+import { filter, switchMap } from 'rxjs';
 
 import { InputDirective } from '../../directives/input.directive';
 import { Feature } from '../../models/feature';
 import { Project } from '../../models/project';
 import { FeatureService } from '../../services/feature.service';
 import { ProjectService } from '../../services/project.service';
+import { TrackByService } from '../../services/track-by.service';
 
 @UntilDestroy()
 @Component({
@@ -38,44 +35,46 @@ import { ProjectService } from '../../services/project.service';
     RouterLinkWithHref,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
-export class ProjectPageComponent implements OnInit {
-  readonly project$ = this.projectService.project$.pipe(
-    filter((project): project is Project => project !== null)
-  );
+export class ProjectPageComponent {
+  readonly project$ = this.state.select('project');
+
+  readonly features$ = this.state.select('features');
 
   formNewFeature = new FormGroup({
     name: new FormControl(),
   });
+
   constructor(
-    public readonly title: Title,
     public readonly activatedRoute: ActivatedRoute,
     public readonly projectService: ProjectService,
-    public readonly router: Router,
-    public readonly featureService: FeatureService
-  ) {}
-
-  ngOnInit(): void {
-    this.router.events
-      .pipe(
-        untilDestroyed(this),
-        filter((event) => event instanceof NavigationEnd),
-        startWith(null)
-      )
-      .subscribe(() =>
-        this.projectService.getProject(
-          this.activatedRoute.snapshot.params['id']
+    public readonly featureService: FeatureService,
+    public readonly title: Title,
+    public readonly state: RxState<{ project: Project; features: Feature[] }>,
+    public readonly trackBy: TrackByService
+  ) {
+    this.state.connect(
+      'project',
+      this.activatedRoute.params.pipe(
+        switchMap((params) =>
+          this.projectService
+            .getById(params['id'])
+            .pipe(filter((el): el is Project => !!el))
         )
-      );
-
-    this.projectService.project$
-      .pipe(
-        untilDestroyed(this),
-        filter((project): project is Project => project !== null)
       )
-      .subscribe((project) =>
-        this.title.setTitle(`${project.name.slice(0, 20)}... | FeatureBased`)
-      );
+    );
+    this.state.connect(
+      'features',
+      this.activatedRoute.params.pipe(
+        switchMap((params) =>
+          this.featureService.getFeaturesFromProjectById(params['id'])
+        )
+      )
+    );
+    this.state.hold(this.project$, (project) =>
+      this.title.setTitle(`${project.name.slice(0, 20)}... | FeatureBased`)
+    );
   }
 
   async handleNewFeature(project: Project) {
@@ -83,9 +82,5 @@ export class ProjectPageComponent implements OnInit {
       this.formNewFeature.getRawValue().name,
     ]);
     this.formNewFeature.reset();
-  }
-
-  trackById(index: number, item: Feature) {
-    return item.id;
   }
 }

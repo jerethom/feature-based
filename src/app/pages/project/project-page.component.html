@@ -12,12 +12,7 @@
   </form>
 
   <div class="grid gap-4 grid-cols-1 lg:grid-cols-2">
-    <ng-container
-      *rxFor="
-        let feature of featureService.projectFeatures$;
-        trackBy: trackById
-      "
-    >
+    <ng-container *rxFor="let feature of features$; trackBy: trackBy.id">
       <a [routerLink]="['/feature-' + feature.id]">
         <div class="p-5 rounded border bg-white">{{ feature.name }}</div>
       </a>

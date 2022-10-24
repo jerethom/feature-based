@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { RxState } from '@rx-angular/state';
 import { liveQuery } from 'dexie';
 
+import { Feature } from '../models/feature';
 import { Project } from '../models/project';
 import { wrapDixieObservable } from '../utils/wrap-dixie-observable';
 
@@ -10,32 +10,33 @@ import { DatabaseService } from './database.service';
 @Injectable({
   providedIn: 'root',
 })
-export class ProjectService extends RxState<{
-  projects: Project[];
-  project: Project | null;
-}> {
-  readonly list$ = this.select('projects');
+export class ProjectService {
+  constructor(private readonly databaseService: DatabaseService) {}
 
-  readonly project$ = this.select('project');
+  getAll() {
+    return wrapDixieObservable(
+      liveQuery(() => this.databaseService.projects.toCollection().toArray())
+    );
+  }
 
-  constructor(private readonly databaseService: DatabaseService) {
-    super();
-    this.set({ projects: [] });
-    this.connect(
-      'projects',
-      wrapDixieObservable(
-        liveQuery(() => this.databaseService.projects.toArray())
+  getById(id: Project['id']) {
+    return wrapDixieObservable(
+      liveQuery(() =>
+        this.databaseService.projects.get(id).then((res) => res ?? null)
       )
     );
   }
 
-  async getProject(id: Project['id']) {
-    this.connect(
-      'project',
-      wrapDixieObservable(
-        liveQuery(() =>
-          this.databaseService.projects.get(id).then((res) => res ?? null)
-        )
+  getFromFeatureById(id: Feature['id']) {
+    return wrapDixieObservable(
+      liveQuery(() =>
+        this.databaseService.projects
+          .filter(
+            (project) =>
+              !!project.features.find((featureId) => featureId === id)
+          )
+          .toArray()
+          .then((res) => res[0] ?? null)
       )
     );
   }

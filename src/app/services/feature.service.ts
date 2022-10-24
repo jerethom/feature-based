@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { RxState } from '@rx-angular/state';
 import { liveQuery } from 'dexie';
-import { switchMap } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { Feature } from '../models/feature';
 import { Project } from '../models/project';
@@ -13,46 +12,52 @@ import { ProjectService } from './project.service';
 @Injectable({
   providedIn: 'root',
 })
-export class FeatureService extends RxState<{
-  projectFeatures: Feature[];
-  projectFeature: Feature | null;
-}> {
-  readonly projectFeatures$ = this.select('projectFeatures');
-
-  readonly projectFeature$ = this.select('projectFeature');
-
+export class FeatureService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly projectService: ProjectService
-  ) {
-    super();
-    this.set({
-      projectFeature: null,
-      projectFeatures: [],
-    });
-    this.connect(
-      'projectFeatures',
-      this.projectService.project$.pipe(
-        switchMap((project) =>
-          wrapDixieObservable(
-            liveQuery(() =>
-              this.databaseService.features
-                .filter((feature) => !!project?.features.includes(feature.id))
-                .toArray()
-            )
-          )
-        )
+  ) {}
+
+  getFeature(id: Feature['id']) {
+    return wrapDixieObservable(
+      liveQuery(() =>
+        this.databaseService.features.get(id).then((res) => res ?? null)
       )
     );
   }
 
-  getById(id: Feature['id']) {
-    this.connect(
-      'projectFeature',
-      wrapDixieObservable(
-        liveQuery(() =>
-          this.databaseService.features.get(id).then((res) => res ?? null)
-        )
+  getOtherFeatures(id: Feature['id']): Observable<Feature[]> {
+    return wrapDixieObservable(
+      liveQuery(() =>
+        this.databaseService.projects
+          .filter((project) => project.features.includes(id))
+          .toArray()
+          .then((res) => res[0])
+          .then((project) =>
+            this.databaseService.features
+              .bulkGet(project?.features ?? [])
+              .then((features) =>
+                features.filter(
+                  (feature): feature is Feature =>
+                    !!feature && feature?.id !== id
+                )
+              )
+          )
+          .then((res) => res.flat(1))
+      )
+    );
+  }
+
+  getFeaturesFromProjectById(id: Project['id']) {
+    return wrapDixieObservable(
+      liveQuery(() =>
+        this.databaseService.projects
+          .get(id)
+          .then((project) =>
+            this.databaseService.features
+              .bulkGet(project?.features ?? [])
+              .then((res) => res.filter((el): el is Feature => !!el))
+          )
       )
     );
   }

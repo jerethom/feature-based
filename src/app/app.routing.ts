@@ -1,9 +1,4 @@
-import {
-  Routes,
-  UrlMatcher,
-  UrlMatchResult,
-  UrlSegment,
-} from '@angular/router';
+import { Routes, UrlMatchResult, UrlSegment } from '@angular/router';
 
 export const appRouting: Routes = [
   {

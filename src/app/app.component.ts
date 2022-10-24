@@ -2,7 +2,7 @@ import { PortalModule } from '@angular/cdk/portal';
 import { NgClass, NgForOf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ForModule, PushModule } from '@rx-angular/template';
 
@@ -34,15 +34,19 @@ import { ProjectService } from './services/project.service';
 export class AppComponent implements OnInit {
   constructor(
     public readonly layoutService: LayoutService,
-    public readonly projectService: ProjectService
+    public readonly projectService: ProjectService,
+    public readonly router: Router
   ) {}
 
   ngOnInit(): void {
-    this.projectService.list$
+    this.projectService
+      .getAll()
       .pipe(untilDestroyed(this))
       .subscribe((projects) => {
         if (projects.length) {
           this.layoutService.injectLeftPanel(ProjectListLeftPanelComponent);
+        } else {
+          this.router.navigate(['/new-project']);
         }
       });
   }
